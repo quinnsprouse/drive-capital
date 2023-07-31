@@ -5,7 +5,7 @@ const {
   Company,
   Employee,
   NetworkAnalyzer,
-} = require("../src/main.js"); // Adjust the path if needed
+} = require("../src/main.js");
 
 describe("Network Analyzer", () => {
   describe("Process Partner Command", () => {
