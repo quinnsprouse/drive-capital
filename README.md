@@ -54,10 +54,10 @@ npm test
 
 The problem was approached by defining classes to represent partners, companies, and employees and encapsulating their relationships and interactions. The `NetworkAnalyzer` class is responsible for processing commands and performing the relationship analysis.
 
-- **Class Design:** Classes were created to separate the concerns and make the code more modular.
-- **Command Processing:** Commands are processed line by line from the provided file, allowing easy extendability for additional command types.
-- **Analyzing Relationships:** Relationships are analyzed and printed at the end of processing to determine the strongest relationship for each company.
-- **Dependency Injection** Injected dependencies like the file reader and console instead of relying on global dependencies. This way, we can mock these during testing.
+- **Class Design:** Classes were created to make the code more modular and easier to read.
+- **Command Processing:** Commands are processed line by line from the provided file, allowing easy extendability for additional command types. This also allows us to process the file line by line instead of loading the entire file into memory.
+- **Analyzing Relationships:** Relationships are analyzed and printed at the end of processing to determine the strongest relationship for each company. Having the printing functionality isolated from the file processing allows us to output the results in different formats in the future. For example, we could print the results to a file instead of the console.
+- **Dependency Injection:** Dependencies like the file reader and console were injected instead of relying on global dependencies. This way, we can mock these during testing.
 
 ## 📝 Assumptions and Edge Cases
 
