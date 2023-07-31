@@ -22,95 +22,99 @@ class Employee {
   }
 }
 
-let partners = new Map();
-let companies = new Map();
-let employees = new Map();
-
-function processPartnerCommand(name) {
-  partners.set(name, new Partner(name));
-}
-
-function processCompanyCommand(name) {
-  companies.set(name, new Company(name));
-}
-
-function processEmployeeCommand(name, companyName) {
-  if (companies.has(companyName)) {
-    const employee = new Employee(name, companyName);
-    companies.get(companyName).employees.add(employee);
-    employees.set(name, employee);
+class NetworkAnalyzer {
+  constructor(fileSystem = fs, logger = console.log) {
+    this.partners = new Map();
+    this.companies = new Map();
+    this.employees = new Map();
+    this.fileSystem = fileSystem;
+    this.logger = logger;
   }
-}
 
-function processContactCommand(employeeName, partnerName) {
-  if (employees.has(employeeName) && partners.has(partnerName)) {
-    const employeeCompany = companies.get(employees.get(employeeName).company);
-    const count = employeeCompany.relationships.get(partnerName) || 0;
-    employeeCompany.relationships.set(partnerName, count + 1);
+  processPartnerCommand(name) {
+    this.partners.set(name, new Partner(name));
   }
-}
 
-const analyzeNetwork = (filename) => {
-  const fileStream = fs.createReadStream(filename, "utf-8");
-  const rl = readline.createInterface({
-    input: fileStream,
-    crlfDelay: Infinity,
-  });
+  processCompanyCommand(name) {
+    this.companies.set(name, new Company(name));
+  }
 
-  rl.on("line", (line) => {
-    if (!line.trim()) return; // Ignore empty lines
-
-    const [command, ...args] = line.split(" ");
-
-    switch (command) {
-      case "Partner":
-        processPartnerCommand(...args);
-        break;
-      case "Company":
-        processCompanyCommand(...args);
-        break;
-      case "Employee":
-        processEmployeeCommand(...args);
-        break;
-      case "Contact":
-        processContactCommand(...args);
-        break;
+  processEmployeeCommand(name, companyName) {
+    if (this.companies.has(companyName)) {
+      const employee = new Employee(name, companyName);
+      this.companies.get(companyName).employees.add(employee);
+      this.employees.set(name, employee);
     }
-  });
+  }
 
-  rl.on("close", () => {
-    // Sort and print companies with their strongest relationship
-    [...companies.keys()].sort().forEach((companyName) => {
-      const company = companies.get(companyName);
-      const strongestRelationship = [...company.relationships.entries()].sort(
-        (a, b) => b[1] - a[1]
-      )[0];
+  processContactCommand(employeeName, partnerName) {
+    if (this.employees.has(employeeName) && this.partners.has(partnerName)) {
+      const employeeCompany = this.companies.get(
+        this.employees.get(employeeName).company
+      );
+      const count = employeeCompany.relationships.get(partnerName) || 0;
+      employeeCompany.relationships.set(partnerName, count + 1);
+    }
+  }
 
-      if (!strongestRelationship) {
-        console.log(`${companyName}: No current relationship`);
-      } else {
-        console.log(
-          `${companyName}: ${strongestRelationship[0]} (${strongestRelationship[1]})`
-        );
+  analyze(filename) {
+    const fileStream = this.fileSystem.createReadStream(filename, "utf-8");
+    const rl = readline.createInterface({
+      input: fileStream,
+      crlfDelay: Infinity,
+    });
+
+    rl.on("line", (line) => {
+      if (!line.trim()) return;
+
+      const [command, ...args] = line.split(" ");
+
+      switch (command) {
+        case "Partner":
+          this.processPartnerCommand(...args);
+          break;
+        case "Company":
+          this.processCompanyCommand(...args);
+          break;
+        case "Employee":
+          this.processEmployeeCommand(...args);
+          break;
+        case "Contact":
+          this.processContactCommand(...args);
+          break;
       }
     });
-  });
-};
+
+    rl.on("close", () => {
+      [...this.companies.keys()].sort().forEach((companyName) => {
+        const company = this.companies.get(companyName);
+        const strongestRelationship = [...company.relationships.entries()].sort(
+          (a, b) => b[1] - a[1]
+        )[0];
+
+        if (!strongestRelationship) {
+          this.logger(`${companyName}: No current relationship`);
+        } else {
+          this.logger(
+            `${companyName}: ${strongestRelationship[0]} (${strongestRelationship[1]})`
+          );
+        }
+      });
+    });
+  }
+}
 
 if (process.argv.length != 3) {
   console.log("Usage: node analyze_network.js <filename>");
   process.exit(1);
 }
 
-analyzeNetwork(process.argv[2]);
+const analyzer = new NetworkAnalyzer();
+analyzer.analyze(process.argv[2]);
 
 module.exports = {
   Partner,
   Company,
   Employee,
-  processPartnerCommand,
-  processCompanyCommand,
-  processEmployeeCommand,
-  processContactCommand,
-  analyzeNetwork,
+  NetworkAnalyzer,
 };
