@@ -1,0 +1,26 @@
+{
+  "name": "drive-capital",
+  "version": "1.0.0",
+  "description": "a commandline tool to analyze data relationships",
+  "main": "main.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "jest",
+    "start": "node src/main.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/quinnsprouse/drive-capital.git"
+  },
+  "author": "Quinn Sprouse",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/quinnsprouse/drive-capital/issues"
+  },
+  "homepage": "https://github.com/quinnsprouse/drive-capital#readme",
+  "devDependencies": {
+    "jest": "^29.6.2"
+  }
+}
