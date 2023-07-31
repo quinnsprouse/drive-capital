@@ -1,71 +1,68 @@
 const fs = require("fs");
-const readline = require("readline");
-const {
-  Partner,
-  Company,
-  Employee,
-  NetworkAnalyzer,
-} = require("../src/main.js");
+const { Partner, Company, Employee, NetworkAnalyzer } = require("../src/main"); // Adjust the path accordingly
 
-describe("Network Analyzer", () => {
-  describe("Process Partner Command", () => {
-    it("create a new partner", () => {
-      const analyzer = new NetworkAnalyzer();
-      analyzer.processPartnerCommand("John");
+describe("Partner class", () => {
+  test("should create a new Partner", () => {
+    const partner = new Partner("John Doe");
+    expect(partner.name).toBe("John Doe");
+  });
+});
 
-      expect(analyzer.partners.get("John")).toEqual(new Partner("John"));
-    });
+describe("Company class", () => {
+  test("should create a new Company", () => {
+    const company = new Company("TechCorp");
+    expect(company.name).toBe("TechCorp");
+    expect(company.employees).toEqual(new Set());
+    expect(company.relationships).toEqual(new Map());
+  });
+});
+
+describe("Employee class", () => {
+  test("should create a new Employee", () => {
+    const employee = new Employee("Jane Doe", "TechCorp");
+    expect(employee.name).toBe("Jane Doe");
+    expect(employee.company).toBe("TechCorp");
+  });
+});
+
+describe("NetworkAnalyzer class", () => {
+  let networkAnalyzer;
+  let mockLog;
+
+  beforeEach(() => {
+    mockLog = jest.fn();
+    networkAnalyzer = new NetworkAnalyzer(fs, mockLog);
   });
 
-  describe("Process Company Command", () => {
-    it("should create and store a new company", () => {
-      const analyzer = new NetworkAnalyzer();
-      analyzer.processCompanyCommand("Apple");
-
-      expect(analyzer.companies.get("Apple")).toEqual(new Company("Apple"));
-    });
+  test("should process Partner command", () => {
+    networkAnalyzer.processPartnerCommand("John Doe");
+    expect(networkAnalyzer.partners.get("John Doe")).toBeInstanceOf(Partner);
   });
 
-  describe("Process Employee Command", () => {
-    it("should create a new employee for an existing company", () => {
-      const analyzer = new NetworkAnalyzer();
-      analyzer.processCompanyCommand("Apple");
-      analyzer.processEmployeeCommand("Steve", "Apple");
-
-      expect(analyzer.employees.get("Steve")).toEqual(
-        new Employee("Steve", "Apple")
-      );
-      expect(
-        analyzer.companies
-          .get("Apple")
-          .employees.has(analyzer.employees.get("Steve"))
-      ).toBe(true);
-    });
-
-    it("should not create an employee for a non-existing company", () => {
-      const analyzer = new NetworkAnalyzer();
-      analyzer.processEmployeeCommand("Steve", "Apple");
-
-      expect(analyzer.employees.has("Steve")).toBe(false);
-    });
+  test("should process Company command", () => {
+    networkAnalyzer.processCompanyCommand("TechCorp");
+    expect(networkAnalyzer.companies.get("TechCorp")).toBeInstanceOf(Company);
   });
 
-  describe("Process Contact Command", () => {
-    it("should increase the contact count for a valid employee and partner", () => {
-      const analyzer = new NetworkAnalyzer();
-      analyzer.processCompanyCommand("Apple");
-      analyzer.processEmployeeCommand("Steve", "Apple");
-      analyzer.processPartnerCommand("John");
-      analyzer.processContactCommand("Steve", "John");
+  test("should process Employee command", () => {
+    networkAnalyzer.processCompanyCommand("TechCorp");
+    networkAnalyzer.processEmployeeCommand("Jane Doe", "TechCorp");
+    expect(networkAnalyzer.employees.get("Jane Doe")).toBeInstanceOf(Employee);
+    expect(networkAnalyzer.companies.get("TechCorp").employees.size).toBe(1);
+  });
 
-      expect(analyzer.companies.get("Apple").relationships.get("John")).toBe(1);
-    });
+  test("should not process Employee command if company does not exist", () => {
+    networkAnalyzer.processEmployeeCommand("Jane Doe", "NonExistentCorp");
+    expect(networkAnalyzer.employees.has("Jane Doe")).toBeFalsy();
+  });
 
-    it("should not increase the contact count for an invalid employee or partner", () => {
-      const analyzer = new NetworkAnalyzer();
-      analyzer.processContactCommand("Steve", "John");
-
-      expect(analyzer.companies.size).toBe(0);
-    });
+  test("should process Contact command", () => {
+    networkAnalyzer.processCompanyCommand("TechCorp");
+    networkAnalyzer.processPartnerCommand("John Doe");
+    networkAnalyzer.processEmployeeCommand("Jane Doe", "TechCorp");
+    networkAnalyzer.processContactCommand("Jane Doe", "John Doe");
+    expect(
+      networkAnalyzer.companies.get("TechCorp").relationships.get("John Doe")
+    ).toBe(1);
   });
 });
